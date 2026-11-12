@@ -1,0 +1,9 @@
+begin
+  X := 17;
+  Y := 5;
+  R := 0;
+  while ~(Y > X) do begin
+    X := X - Y;
+    R := R + 1
+  end
+end
