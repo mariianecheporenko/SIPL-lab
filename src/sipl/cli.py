@@ -75,12 +75,13 @@ def cmd_visualize(path: Path) -> int:
     html_path = path.with_suffix(".compare.html")
 
     txt_path.write_text(tree.pretty(), encoding="utf-8")
-    dot_graph = pydot__tree_to_dot(tree, str(dot_path))
+    pydot__tree_to_dot(tree, str(dot_path))
     try:
         pydot__tree_to_png(tree, str(image_path))
     except (ImportError, RuntimeError, OSError):
         pass
-        html_content = f"""<!DOCTYPE html>
+
+    html_content = f"""<!DOCTYPE html>
 <html lang="uk">
 <head><meta charset="utf-8"><title>SIPL Parse Tree vs AST</title>
 <style>body{{font-family:sans-serif;display:flex;gap:20px;padding:20px}}
@@ -90,6 +91,7 @@ pre{{overflow-x:auto;font-size:13px}}</style></head>
   <div class="box"><h3>Concrete Syntax (Parse Tree)</h3><pre>{tree.pretty()}</pre></div>
   <div class="box"><h3>Abstract Syntax Tree (AST JSON)</h3><pre>{ast_json}</pre></div>
 </body></html>"""
+
     html_path.write_text(html_content, encoding="utf-8")
 
     print(f"Parse tree text: {txt_path}")
