@@ -1,0 +1,32 @@
+[
+  {
+    "id": "CONF-01",
+    "description": "Arithmetic precedence and negative numbers",
+    "source": "begin X := -2 + 3 * 4 end",
+    "expect_valid": true,
+    "expected_state": { "X": 10 }
+  },
+  {
+    "id": "CONF-02",
+    "description": "While loop integer division",
+    "source": "begin X := 17; Y := 5; R := 0; while ~(Y > X) do begin X := X - Y; R := R + 1 end end",
+    "expect_valid": true,
+    "expected_state": {
+      "X": 2,
+      "Y": 5,
+      "R": 3
+    }
+  },
+  {
+    "id": "CONF-03",
+    "description": "Syntax error on trailing semicolon",
+    "source": "begin X := 1; end",
+    "expect_valid": false
+  },
+  {
+    "id": "CONF-04",
+    "description": "Runtime error on unassigned variable",
+    "source": "begin X := Y + 1 end",
+    "expect_valid": false
+  }
+]
