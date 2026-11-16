@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sipl-toolkit-knu"
+version = "0.1.0"
+description = "Lexer, parser, AST, interpreter, and visualizer for SIPL (Simple Programming Language)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "lark>=1.1.0",
+    "pydot>=2.0.0",
+]
+
+[project.scripts]
+sipl = "src.sipl.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
