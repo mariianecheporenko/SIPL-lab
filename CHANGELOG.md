@@ -6,7 +6,7 @@
 - Formal Grammar (`CORE-01`): EBNF grammar for SIPL (`grammar/sipl.lark`) strictly aligned with the course BNF specification 
   (`begin ... end`, `:=`, `;`, `if ... then ... else ...`, `while ... do ...`, `skip`, `~`, `\/`, `=`, `>`, `+`, `-`, `*`) 
   and 3 sample programs (`examples/parity.sipl`, `examples/power.sipl`, `examples/div.sipl`).
-- Typed AST & Parser (`CORE-02`):** Strongly-typed `dataclass` AST nodes (`src/sipl/ast.py`) and 
+- Typed AST & Parser (`CORE-02`): Strongly-typed `dataclass` AST nodes (`src/sipl/ast.py`) and 
   Lark transformer (`src/sipl/parser.py`) with syntax error diagnostics.
 - Interpreter & Execution Trace (`CORE-03`, `CORE-04`): Visitor-based state evaluator (`src/sipl/interpreter.py`) with infinite-loop protection (`max_steps`) 
   and structured JSON execution trace events (`before_assign`, `after_assign`, `if_condition`, `while_condition`, `skip`, `finished`).

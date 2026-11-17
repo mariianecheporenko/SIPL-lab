@@ -6,6 +6,7 @@ import pytest
 from src.sipl.cli import main as cli_main
 from src.sipl.interpreter import ExecutionLimitError, Interpreter
 from src.sipl.parser import parse
+from src.sipl.errors import SiplSyntaxError
 
 
 # 10 POSITIVE TESTS 
@@ -88,7 +89,7 @@ def test_positive_programs(source: str, expected_state: dict[str, int]):
     ],
 )
 def test_negative_syntax_errors(invalid_source: str):
-    with pytest.raises(Exception):
+    with pytest.raises(SiplSyntaxError):
         parse(invalid_source)
 
 

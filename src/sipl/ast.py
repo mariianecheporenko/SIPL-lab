@@ -2,8 +2,38 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Protocol, TypeAlias
+from dataclasses import dataclass, field, fields
+from typing import Any, Protocol, TypeAlias
+
+
+@dataclass(frozen=True)
+class SourceSpan:
+    
+    start_line: int
+    start_column: int
+    end_line: int
+    end_column: int
+    start_offset: int
+    end_offset: int
+
+    def merge(self, other: SourceSpan) -> SourceSpan:
+        """Return the span from the start of ``self`` to the end of ``other``."""
+        return SourceSpan(
+            self.start_line, self.start_column,
+            other.end_line, other.end_column,
+            self.start_offset, other.end_offset,
+        )
+
+    def to_dict(self) -> dict[str, int]:
+        return {
+            "start_line": self.start_line,
+            "start_column": self.start_column,
+            "end_line": self.end_line,
+            "end_column": self.end_column,
+            "start_offset": self.start_offset,
+            "end_offset": self.end_offset,
+        }
+
 
 
 class Visitor(Protocol):
@@ -21,15 +51,29 @@ class Visitor(Protocol):
     def visit_boolean_not(self, node: BooleanNot) -> object: ...
 
 
+@dataclass(frozen=True)
 class Node:
+    
+    span: SourceSpan | None = field(default=None, kw_only=True, compare=False, repr=False)
+
     def accept(self, visitor: Visitor) -> object:
-        names = {
-            "BooleanOr": "boolean_or",
-            "BooleanNot": "boolean_not",
-        }
+        names = {"BooleanOr": "boolean_or", "BooleanNot": "boolean_not"}
         method_name = names.get(self.__class__.__name__, self.__class__.__name__.lower())
-        method = getattr(visitor, f"visit_{method_name}")
-        return method(self)
+        return getattr(visitor, f"visit_{method_name}")(self)
+
+    def to_dict(self, *, include_spans: bool = True) -> dict[str, Any]:
+        """Serialise the node to JSON-compatible data with a ``type`` discriminator."""
+        data: dict[str, Any] = {"type": type(self).__name__}
+        for item in fields(self):
+            if item.name == "span":
+                continue
+            value = getattr(self, item.name)
+            if isinstance(value, Node):
+                value = value.to_dict(include_spans=include_spans)
+            data[item.name] = value
+        if include_spans and self.span is not None:
+            data["span"] = self.span.to_dict()
+        return data
 
 
 class Expression(Node):

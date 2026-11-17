@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
 import json
 from pathlib import Path
 import sys
@@ -11,9 +10,11 @@ import sys
 from lark.tree import pydot__tree_to_png, pydot__tree_to_dot
 
 try:
+    from .errors import SiplError
     from .interpreter import Interpreter
     from .parser import parse, parse_tree
 except ImportError:
+    from errors import SiplError
     from interpreter import Interpreter
     from parser import parse, parse_tree
 
@@ -27,7 +28,7 @@ def _read_source(path: Path) -> str:
 
 def cmd_parse(path: Path) -> int:
     program = parse(_read_source(path))
-    print(json.dumps(asdict(program), indent=2))
+    print(json.dumps(program.to_dict(), indent=2))
     return 0
 
 
@@ -67,7 +68,7 @@ def cmd_visualize(path: Path) -> int:
     source = _read_source(path)
     tree = parse_tree(source)
     program = parse(source)
-    ast_json = json.dumps(asdict(program), indent=2)
+    ast_json = json.dumps(program.to_dict(), indent=2)
 
     txt_path = path.with_suffix(".tree.txt")
     dot_path = path.with_suffix(".dot")
@@ -141,6 +142,16 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         return args.handler(args)
+    except SiplError as exc:
+        print(
+            json.dumps({
+                "status": "error",
+                "message": str(exc),
+                "diagnostics": [exc.diagnostic.to_dict()],
+            }),
+            file=sys.stderr,
+        )
+        return 1
     except Exception as exc:
         print(json.dumps({"status": "error", "message": str(exc)}), file=sys.stderr)
         return 1

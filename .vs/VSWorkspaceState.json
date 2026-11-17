@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\conformance",
+    "\\docs",
+    "\\examples",
+    "\\grammar",
+    "\\src",
+    "\\src\\sipl",
+    "\\tests"
+  ],
+  "SelectedNode": "\\src\\sipl\\cli.py",
+  "PreviewInSolutionExplorer": false
+}
