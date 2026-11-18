@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head><meta charset="utf-8"><title>SIPL Parse Tree vs AST</title>
+<style>body{font-family:sans-serif;display:flex;gap:20px;padding:20px}
+.box{flex:1;border:1px solid #ccc;padding:15px;border-radius:8px;background:#f9f9f9}
+pre{overflow-x:auto;font-size:13px}</style></head>
+<body>
+  <div class="box"><h3>Concrete Syntax (Parse Tree)</h3><pre>start
+  sequence
+    assignment
+      N
+      number	0
+    assignment
+      P
+      number	0
+    while_statement
+      greater
+        number	10
+        variable	N
+      sequence
+        block
+          sequence
+            assignment
+              P
+              subtract
+                number	1
+                variable	P
+            assignment
+              N
+              add
+                variable	N
+                number	1
+</pre></div>
+  <div class="box"><h3>Abstract Syntax Tree (AST JSON)</h3><pre>{
+  "type": "Program",
+  "body": {
+    "type": "Seq",
+    "first": {
+      "type": "Seq",
+      "first": {
+        "type": "Assign",
+        "name": "N",
+        "expression": {
+          "type": "Number",
+          "value": 0,
+          "span": {
+            "start_line": 2,
+            "start_column": 10,
+            "end_line": 2,
+            "end_column": 11,
+            "start_offset": 15,
+            "end_offset": 16
+          }
+        },
+        "span": {
+          "start_line": 2,
+          "start_column": 5,
+          "end_line": 2,
+          "end_column": 11,
+          "start_offset": 10,
+          "end_offset": 16
+        }
+      },
+      "second": {
+        "type": "Assign",
+        "name": "P",
+        "expression": {
+          "type": "Number",
+          "value": 0,
+          "span": {
+            "start_line": 3,
+            "start_column": 10,
+            "end_line": 3,
+            "end_column": 11,
+            "start_offset": 27,
+            "end_offset": 28
+          }
+        },
+        "span": {
+          "start_line": 3,
+          "start_column": 5,
+          "end_line": 3,
+          "end_column": 11,
+          "start_offset": 22,
+          "end_offset": 28
+        }
+      },
+      "span": {
+        "start_line": 2,
+        "start_column": 5,
+        "end_line": 3,
+        "end_column": 11,
+        "start_offset": 10,
+        "end_offset": 28
+      }
+    },
+    "second": {
+      "type": "While",
+      "condition": {
+        "type": "Compare",
+        "operator": ">",
+        "left": {
+          "type": "Number",
+          "value": 10,
+          "span": {
+            "start_line": 4,
+            "start_column": 11,
+            "end_line": 4,
+            "end_column": 13,
+            "start_offset": 40,
+            "end_offset": 42
+          }
+        },
+        "right": {
+          "type": "Variable",
+          "name": "N",
+          "span": {
+            "start_line": 4,
+            "start_column": 16,
+            "end_line": 4,
+            "end_column": 17,
+            "start_offset": 45,
+            "end_offset": 46
+          }
+        },
+        "span": {
+          "start_line": 4,
+          "start_column": 11,
+          "end_line": 4,
+          "end_column": 17,
+          "start_offset": 40,
+          "end_offset": 46
+        }
+      },
+      "body": {
+        "type": "Seq",
+        "first": {
+          "type": "Assign",
+          "name": "P",
+          "expression": {
+            "type": "Arithmetic",
+            "operator": "-",
+            "left": {
+              "type": "Number",
+              "value": 1,
+              "span": {
+                "start_line": 6,
+                "start_column": 14,
+                "end_line": 6,
+                "end_column": 15,
+                "start_offset": 73,
+                "end_offset": 74
+              }
+            },
+            "right": {
+              "type": "Variable",
+              "name": "P",
+              "span": {
+                "start_line": 6,
+                "start_column": 18,
+                "end_line": 6,
+                "end_column": 19,
+                "start_offset": 77,
+                "end_offset": 78
+              }
+            },
+            "span": {
+              "start_line": 6,
+              "start_column": 14,
+              "end_line": 6,
+              "end_column": 19,
+              "start_offset": 73,
+              "end_offset": 78
+            }
+          },
+          "span": {
+            "start_line": 6,
+            "start_column": 9,
+            "end_line": 6,
+            "end_column": 19,
+            "start_offset": 68,
+            "end_offset": 78
+          }
+        },
+        "second": {
+          "type": "Assign",
+          "name": "N",
+          "expression": {
+            "type": "Arithmetic",
+            "operator": "+",
+            "left": {
+              "type": "Variable",
+              "name": "N",
+              "span": {
+                "start_line": 7,
+                "start_column": 14,
+                "end_line": 7,
+                "end_column": 15,
+                "start_offset": 93,
+                "end_offset": 94
+              }
+            },
+            "right": {
+              "type": "Number",
+              "value": 1,
+              "span": {
+                "start_line": 7,
+                "start_column": 18,
+                "end_line": 7,
+                "end_column": 19,
+                "start_offset": 97,
+                "end_offset": 98
+              }
+            },
+            "span": {
+              "start_line": 7,
+              "start_column": 14,
+              "end_line": 7,
+              "end_column": 19,
+              "start_offset": 93,
+              "end_offset": 98
+            }
+          },
+          "span": {
+            "start_line": 7,
+            "start_column": 9,
+            "end_line": 7,
+            "end_column": 19,
+            "start_offset": 88,
+            "end_offset": 98
+          }
+        },
+        "span": {
+          "start_line": 6,
+          "start_column": 9,
+          "end_line": 7,
+          "end_column": 19,
+          "start_offset": 68,
+          "end_offset": 98
+        }
+      },
+      "span": {
+        "start_line": 4,
+        "start_column": 5,
+        "end_line": 8,
+        "end_column": 8,
+        "start_offset": 34,
+        "end_offset": 106
+      }
+    },
+    "span": {
+      "start_line": 2,
+      "start_column": 5,
+      "end_line": 8,
+      "end_column": 8,
+      "start_offset": 10,
+      "end_offset": 106
+    }
+  },
+  "span": {
+    "start_line": 1,
+    "start_column": 1,
+    "end_line": 9,
+    "end_column": 4,
+    "start_offset": 0,
+    "end_offset": 110
+  }
+}</pre></div>
+</body></html>

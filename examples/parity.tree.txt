@@ -1,0 +1,25 @@
+start
+  sequence
+    assignment
+      N
+      number	0
+    assignment
+      P
+      number	0
+    while_statement
+      greater
+        number	10
+        variable	N
+      sequence
+        block
+          sequence
+            assignment
+              P
+              subtract
+                number	1
+                variable	P
+            assignment
+              N
+              add
+                variable	N
+                number	1

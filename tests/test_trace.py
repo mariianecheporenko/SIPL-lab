@@ -91,7 +91,12 @@ def test_before_and_after_are_properly_nested():
 
 def test_event_spans_point_to_source_fragments():
     source = "begin X := 3; if X > 5 then Y := 1 else Y := 0 end"
-    text = lambda e: source[e.span.start_offset:e.span.end_offset]
+
+    def text(e):
+        return source[e.span.start_offset:e.span.end_offset]
+
+    events = run(source).trace_events
+    assert text(events[0]) == "X := 3"
     events = run(source).trace_events
     assert text(events[0]) == "X := 3"
     condition = next(e for e in events if e.kind is EventKind.CONDITION_EVALUATED)

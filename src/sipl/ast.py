@@ -8,7 +8,7 @@ from typing import Any, Protocol, TypeAlias
 
 @dataclass(frozen=True)
 class SourceSpan:
-    
+
     start_line: int
     start_column: int
     end_line: int
@@ -53,7 +53,7 @@ class Visitor(Protocol):
 
 @dataclass(frozen=True)
 class Node:
-    
+
     span: SourceSpan | None = field(default=None, kw_only=True, compare=False, repr=False)
 
     def accept(self, visitor: Visitor) -> object:

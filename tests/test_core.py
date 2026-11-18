@@ -1,15 +1,15 @@
 """Comprehensive positive and negative test suite for SIPL (CORE-01, CORE-02, CORE-03, CORE-04, CORE-05)."""
 
 from pathlib import Path
+
 import pytest
 
 from sipl.cli import main as cli_main
+from sipl.errors import SiplSyntaxError
 from sipl.interpreter import ExecutionLimitError, Interpreter
 from sipl.parser import parse
-from sipl.errors import SiplSyntaxError
 
-
-# 10 POSITIVE TESTS 
+# 10 POSITIVE TESTS
 
 @pytest.mark.parametrize(
     "source,expected_state",
