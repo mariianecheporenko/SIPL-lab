@@ -3,19 +3,30 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sipl-toolkit-knu"
+name = "sipl-lab"
 version = "0.1.0"
-description = "Lexer, parser, AST, interpreter, and visualizer for SIPL (Simple Programming Language)"
+description = "SIPL Language Toolkit: parser, AST, interpreter, CLI, and visualizer"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "lark>=1.1.0",
+    "lark>=1.1.9",
     "pydot>=2.0.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
 [project.scripts]
-sipl = "src.sipl.cli:main"
+sipl = "sipl.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"sipl.grammar" = ["*.lark"]

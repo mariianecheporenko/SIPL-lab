@@ -9,3 +9,8 @@ build/
 *.dot
 *.tree.txt
 *.compare.html
+.vs/
+*.dot
+*.tree.txt
+*.parse_tree.png
+*.compare.html

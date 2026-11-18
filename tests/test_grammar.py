@@ -2,9 +2,9 @@
 
 import pytest
 
-from src.sipl.ast import Arithmetic, Assign, If, Number, Seq, While
-from src.sipl.errors import SiplSyntaxError
-from src.sipl.parser import _parser, parse
+from sipl.ast import Arithmetic, Assign, If, Number, Seq, While
+from sipl.errors import SiplSyntaxError
+from sipl.parser import _parser, parse
 
 
 def test_grammar_is_lalr():

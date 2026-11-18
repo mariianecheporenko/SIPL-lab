@@ -3,10 +3,10 @@
 from pathlib import Path
 import pytest
 
-from src.sipl.cli import main as cli_main
-from src.sipl.interpreter import ExecutionLimitError, Interpreter
-from src.sipl.parser import parse
-from src.sipl.errors import SiplSyntaxError
+from sipl.cli import main as cli_main
+from sipl.interpreter import ExecutionLimitError, Interpreter
+from sipl.parser import parse
+from sipl.errors import SiplSyntaxError
 
 
 # 10 POSITIVE TESTS 

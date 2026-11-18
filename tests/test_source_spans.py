@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from src.sipl.ast import Arithmetic, Assign, Number, Seq, SourceSpan, Variable, While
-from src.sipl.cli import main as cli_main
-from src.sipl.errors import SiplSyntaxError
-from src.sipl.parser import parse
+from sipl.ast import Arithmetic, Assign, Number, Seq, SourceSpan, Variable, While
+from sipl.cli import main as cli_main
+from sipl.errors import SiplSyntaxError
+from sipl.parser import parse
 
 
 def fragment(source: str, node) -> str:

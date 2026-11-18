@@ -19,7 +19,7 @@ def main() -> int:
 
         try:
             proc = subprocess.run(
-                [sys.executable, "-m", "src.sipl.cli", "run", str(tmp_path), "--json"],
+                [sys.executable, "-m", "sipl.cli", "run", str(tmp_path), "--json"],
                 capture_output=True,
                 text=True,
             )

@@ -15,8 +15,10 @@ from .ast import (
 )
 from .errors import Diagnostic, SiplSyntaxError
 
-GRAMMAR_PATH = Path(__file__).resolve().parents[2] / "grammar" / "sipl.lark"
+from importlib.resources import files
 
+def _load_grammar() -> str:
+    return files("sipl.grammar").joinpath("sipl.lark").read_text(encoding="utf-8")
 
 def _span(meta) -> SourceSpan | None:
     if getattr(meta, "empty", True):
@@ -92,10 +94,10 @@ class SIPLTransformer(Transformer):
         return BooleanNot(items[0], span=_span(meta))
 
 
-_parser = Lark.open(
-    str(GRAMMAR_PATH),
-    parser="lalr",
+_parser = Lark(
+    files("sipl.grammar").joinpath("sipl.lark").read_text(encoding="utf-8"),
     start="start",
+    parser="lalr",
     propagate_positions=True,
 )
 

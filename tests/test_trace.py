@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from src.sipl.cli import main as cli_main
-from src.sipl.interpreter import ExecutionLimitError, Interpreter
-from src.sipl.parser import parse
-from src.sipl.trace import EventKind
+from sipl.cli import main as cli_main
+from sipl.interpreter import ExecutionLimitError, Interpreter
+from sipl.parser import parse
+from sipl.trace import EventKind
 
 KEYS = {"step", "event", "statement", "span", "variable", "old_value", "new_value", "result", "state"}
 
