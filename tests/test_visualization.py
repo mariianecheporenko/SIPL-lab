@@ -145,7 +145,8 @@ def test_cli_visualize_combinations_and_errors(tmp_path: Path, capsys):
     # 2. AST -> JSON written to file
     ast_json_out = tmp_path / "ast.json"
     assert (
-        cli_main(["visualize", str(src_file), "--kind", "ast", "--format", "json", "-o", str(ast_json_out)])
+        cli_main(["visualize", str(src_file), "--kind", "ast",
+                  "--format", "json", "-o", str(ast_json_out)])
         == 0
     )
     capsys.readouterr()
@@ -155,7 +156,8 @@ def test_cli_visualize_combinations_and_errors(tmp_path: Path, capsys):
     # 3. Parse -> SVG written to file
     svg_out = tmp_path / "parse.svg"
     assert (
-        cli_main(["visualize", str(src_file), "--kind", "parse", "--format", "svg", "-o", str(svg_out)])
+        cli_main(["visualize", str(src_file), "--kind", "parse",
+                  "--format", "svg", "-o", str(svg_out)])
         == 0
     )
     capsys.readouterr()

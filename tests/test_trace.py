@@ -10,7 +10,8 @@ from sipl.interpreter import ExecutionLimitError, Interpreter
 from sipl.parser import parse
 from sipl.trace import EventKind
 
-KEYS = {"step", "event", "statement", "span", "variable", "old_value", "new_value", "result", "state"}
+KEYS = {"step", "event", "statement", "span", "variable",
+        "old_value", "new_value", "result", "state"}
 
 
 def run(source: str, **kwargs) -> Interpreter:
@@ -79,7 +80,10 @@ def test_skip_events():
 
 
 def test_before_and_after_are_properly_nested():
-    source = "begin X := 2; while X > 0 do begin if X = 1 then skip else X := X - 1; X := X - 1 end end"
+    source = (
+            "begin X := 2; while X > 0 do "
+            "begin if X = 1 then skip else X := X - 1; X := X - 1 end end"
+        )
     stack = []
     for e in run(source).trace_events:
         if e.kind is EventKind.BEFORE_STATEMENT:

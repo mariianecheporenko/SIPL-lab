@@ -171,7 +171,9 @@ def render_svg(root: VisNode, *, source: str | None = None, prefix: str = "n") -
         for child in node.children:
             ccx, cdepth = positions[id(child)]
             x1, y1, x2, y2 = cx, y + NODE_H, ccx, top(cdepth)
-            edges.append(f'<line class="edge" x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}"/>')
+            edges.append(
+                f'<line class="edge" x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}"/>'
+                )
             if child.role:
                 mx, my = (x1 + x2) / 2, (y1 + y2) / 2
                 role_w = len(child.role) * 6 + 6
@@ -188,7 +190,8 @@ def render_svg(root: VisNode, *, source: str | None = None, prefix: str = "n") -
             f'<g class="node k-{node.kind}" id="{node_id}"{data}>'
             f"<title>{escape(_tooltip(node, source))}</title>"
             f'<rect x="{cx - w / 2:.1f}" y="{y:.1f}" width="{w:.1f}" height="{NODE_H}" rx="5"/>'
-            f'<text x="{cx:.1f}" y="{y + NODE_H / 2 + 4:.1f}" text-anchor="middle">{escape(node.label)}</text>'
+            f'<text x="{cx:.1f}" y="{y + NODE_H / 2 + 4:.1f}" '
+            f'text-anchor="middle">{escape(node.label)}</text>'
             "</g>"
         )
         for child in node.children:
@@ -221,14 +224,17 @@ body{font-family:system-ui,sans-serif;margin:16px;background:#fff;color:#111}
 h1{font-size:18px;margin:0 0 8px}
 h2{font-size:15px;margin:18px 0 6px}
 #hint{color:#555;font-size:13px;margin-bottom:8px}
-pre#source{background:#f6f6f6;border:1px solid #ddd;border-radius:6px;padding:10px;margin:0;font-size:14px;overflow:auto}
+pre#source{background:#f6f6f6;border:1px solid #ddd;border-radius:6px;padding:10px;
+margin:0;font-size:14px;overflow:auto}
 pre#source mark{background:#ffd54a;outline:1px solid #d49a00}
 .panel{border:1px solid #ddd;border-radius:6px;overflow:auto;max-height:70vh}
 </style>
 </head>
 <body>
 <h1>$title</h1>
-<div id="hint">Клацніть на вузол будь-якого дерева: відповідний фрагмент коду підсвітиться, так само як вузли з тим самим фрагментом в іншому дереві. Клацніть на порожнє місце, щоб скинути вибір.</div>
+<div id="hint">Наведіть курсор або клацніть на будь-який вузол дерева — відповідний
+фрагмент коду підсвітиться, так само як вузли з тим самим фрагментом в іншому дереві.
+Клацніть на порожнє місце, щоб скинути вибір.</div>
 <h2>Вихідний код</h2>
 <pre id="source">$source_html</pre>
 <h2>Дерево виводу (конкретний синтаксис): $n_parse вузлів</h2>
@@ -258,7 +264,9 @@ pre#source mark{background:#ffd54a;outline:1px solid #d49a00}
       event.stopPropagation();
       var start = Number(g.dataset.s), end = Number(g.dataset.e);
       nodes.forEach(function (other) {
-        other.classList.toggle("sel", Number(other.dataset.s) === start && Number(other.dataset.e) === end);
+        var same =
+          Number(other.dataset.s) === start && Number(other.dataset.e) === end;
+        other.classList.toggle("sel", same);
       });
       show(start, end);
     });

@@ -1,4 +1,5 @@
-"""Comprehensive positive and negative test suite for SIPL (CORE-01, CORE-02, CORE-03, CORE-04, CORE-05)."""
+"""Comprehensive positive and negative test suite for SIPL
+(CORE-01, CORE-02, CORE-03, CORE-04, CORE-05)."""
 
 from pathlib import Path
 
