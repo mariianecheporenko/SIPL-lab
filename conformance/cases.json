@@ -1,16 +1,202 @@
 [
   {
     "id": "CONF-01",
-    "description": "Arithmetic precedence and negative numbers",
+    "description": "Arithmetic precedence and negative integer literal",
     "source": "begin X := -2 + 3 * 4 end",
     "expect_valid": true,
-    "expected_state": { "X": 10 }
+    "expected_ast": {
+      "type": "Program",
+      "body": {
+        "type": "Assign",
+        "name": "X",
+        "expression": {
+          "type": "Arithmetic",
+          "operator": "+",
+          "left": {
+            "type": "Number",
+            "value": -2
+          },
+          "right": {
+            "type": "Arithmetic",
+            "operator": "*",
+            "left": {
+              "type": "Number",
+              "value": 3
+            },
+            "right": {
+              "type": "Number",
+              "value": 4
+            }
+          }
+        }
+      }
+    },
+    "expected_state": {
+      "X": 10
+    }
   },
   {
     "id": "CONF-02",
+    "description": "Boolean negation, disjunction, if-then-else, and skip",
+    "source": "begin X := 1; if ~(X = 2) | (X > 10) then Y := 100 else skip end",
+    "expect_valid": true,
+    "expected_ast": {
+      "type": "Program",
+      "body": {
+        "type": "Seq",
+        "first": {
+          "type": "Assign",
+          "name": "X",
+          "expression": {
+            "type": "Number",
+            "value": 1
+          }
+        },
+        "second": {
+          "type": "If",
+          "condition": {
+            "type": "BooleanOr",
+            "left": {
+              "type": "BooleanNot",
+              "operand": {
+                "type": "Compare",
+                "operator": "=",
+                "left": {
+                  "type": "Variable",
+                  "name": "X"
+                },
+                "right": {
+                  "type": "Number",
+                  "value": 2
+                }
+              }
+            },
+            "right": {
+              "type": "Compare",
+              "operator": ">",
+              "left": {
+                "type": "Variable",
+                "name": "X"
+              },
+              "right": {
+                "type": "Number",
+                "value": 10
+              }
+            }
+          },
+          "then_branch": {
+            "type": "Assign",
+            "name": "Y",
+            "expression": {
+              "type": "Number",
+              "value": 100
+            }
+          },
+          "else_branch": {
+            "type": "Skip"
+          }
+        }
+      }
+    },
+    "expected_state": {
+      "X": 1,
+      "Y": 100
+    }
+  },
+  {
+    "id": "CONF-03",
     "description": "While loop integer division",
     "source": "begin X := 17; Y := 5; R := 0; while ~(Y > X) do begin X := X - Y; R := R + 1 end end",
     "expect_valid": true,
+    "expected_ast": {
+      "type": "Program",
+      "body": {
+        "type": "Seq",
+        "first": {
+          "type": "Seq",
+          "first": {
+            "type": "Seq",
+            "first": {
+              "type": "Assign",
+              "name": "X",
+              "expression": {
+                "type": "Number",
+                "value": 17
+              }
+            },
+            "second": {
+              "type": "Assign",
+              "name": "Y",
+              "expression": {
+                "type": "Number",
+                "value": 5
+              }
+            }
+          },
+          "second": {
+            "type": "Assign",
+            "name": "R",
+            "expression": {
+              "type": "Number",
+              "value": 0
+            }
+          }
+        },
+        "second": {
+          "type": "While",
+          "condition": {
+            "type": "BooleanNot",
+            "operand": {
+              "type": "Compare",
+              "operator": ">",
+              "left": {
+                "type": "Variable",
+                "name": "Y"
+              },
+              "right": {
+                "type": "Variable",
+                "name": "X"
+              }
+            }
+          },
+          "body": {
+            "type": "Seq",
+            "first": {
+              "type": "Assign",
+              "name": "X",
+              "expression": {
+                "type": "Arithmetic",
+                "operator": "-",
+                "left": {
+                  "type": "Variable",
+                  "name": "X"
+                },
+                "right": {
+                  "type": "Variable",
+                  "name": "Y"
+                }
+              }
+            },
+            "second": {
+              "type": "Assign",
+              "name": "R",
+              "expression": {
+                "type": "Arithmetic",
+                "operator": "+",
+                "left": {
+                  "type": "Variable",
+                  "name": "R"
+                },
+                "right": {
+                  "type": "Number",
+                  "value": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "expected_state": {
       "X": 2,
       "Y": 5,
@@ -18,15 +204,32 @@
     }
   },
   {
-    "id": "CONF-03",
+    "id": "CONF-04",
     "description": "Syntax error on trailing semicolon",
     "source": "begin X := 1; end",
-    "expect_valid": false
+    "expect_valid": false,
+    "error_kind": "syntax"
   },
   {
-    "id": "CONF-04",
-    "description": "Runtime error on unassigned variable",
+    "id": "CONF-05",
+    "description": "Syntax error on glued token without delimiter",
+    "source": "begin X := 1end",
+    "expect_valid": false,
+    "error_kind": "syntax"
+  },
+  {
+    "id": "CONF-06",
+    "description": "Runtime error on reading unassigned variable",
     "source": "begin X := Y + 1 end",
-    "expect_valid": false
+    "expect_valid": false,
+    "error_kind": "runtime"
+  },
+  {
+    "id": "CONF-07",
+    "description": "Runtime error when infinite loop exceeds max_steps",
+    "source": "begin while 1 = 1 do skip end",
+    "max_steps": 50,
+    "expect_valid": false,
+    "error_kind": "runtime"
   }
 ]
