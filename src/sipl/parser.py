@@ -3,29 +3,47 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
+from importlib import resources
 
 from lark import Lark, Transformer, Tree, v_args
 from lark.exceptions import UnexpectedEOF, UnexpectedInput
 from lark.lexer import PatternStr
 
 from .ast import (
-    Arithmetic, Assign, BooleanNot, BooleanOr, Compare, If, Number,
-    Program, Seq, Skip, SourceSpan, Variable, While,
+    Arithmetic,
+    Assign,
+    BooleanNot,
+    BooleanOr,
+    Compare,
+    If,
+    Number,
+    Program,
+    Seq,
+    Skip,
+    SourceSpan,
+    Variable,
+    While,
 )
 from .errors import Diagnostic, SiplSyntaxError
 
-from importlib.resources import files
+# The grammar is package data, so it is found both in a source checkout and in
+# an installed wheel (never via a path relative to the repository root).
+GRAMMAR_TEXT: str = (
+    (resources.files(__package__) / "grammar" / "sipl.lark").read_text(encoding="utf-8")
+)
 
-def _load_grammar() -> str:
-    return files("sipl.grammar").joinpath("sipl.lark").read_text(encoding="utf-8")
 
-def _span(meta) -> SourceSpan | None:
+def span_from_meta(meta) -> SourceSpan | None:
+    """Convert Lark's ``meta`` (filled by ``propagate_positions``) to a SourceSpan."""
     if getattr(meta, "empty", True):
         return None
     return SourceSpan(
-        meta.line, meta.column, meta.end_line, meta.end_column,
-        meta.start_pos, meta.end_pos,
+        meta.line,
+        meta.column,
+        meta.end_line,
+        meta.end_column,
+        meta.start_pos,
+        meta.end_pos,
     )
 
 
@@ -37,10 +55,15 @@ def _join(first: SourceSpan | None, second: SourceSpan | None) -> SourceSpan | N
 
 @v_args(meta=True)
 class SIPLTransformer(Transformer):
-    """Convert Lark's concrete parse tree into typed SIPL dataclasses. """
+    """Convert Lark's parse tree into typed SIPL dataclasses.
+
+    Every node gets the span of the source text it was built from.  A
+    ``begin ... end`` block is transparent: it yields the inner statement
+    together with that statement's own span.
+    """
 
     def start(self, meta, items):
-        return Program(items[0], span=_span(meta))
+        return Program(items[0], span=span_from_meta(meta))
 
     def sequence(self, meta, items):
         result = items[0]
@@ -50,54 +73,54 @@ class SIPLTransformer(Transformer):
 
     def assignment(self, meta, items):
         name, expression = items
-        return Assign(str(name), expression, span=_span(meta))
+        return Assign(str(name), expression, span=span_from_meta(meta))
 
     def if_statement(self, meta, items):
         condition, then_branch, else_branch = items
-        return If(condition, then_branch, else_branch, span=_span(meta))
+        return If(condition, then_branch, else_branch, span=span_from_meta(meta))
 
     def while_statement(self, meta, items):
         condition, body = items
-        return While(condition, body, span=_span(meta))
+        return While(condition, body, span=span_from_meta(meta))
 
     def block(self, meta, items):
         return items[0]
 
     def skip_statement(self, meta, _items):
-        return Skip(span=_span(meta))
+        return Skip(span=span_from_meta(meta))
 
     def number(self, meta, items):
-        return Number(int(items[0]), span=_span(meta))
+        return Number(int(items[0]), span=span_from_meta(meta))
 
     def variable(self, meta, items):
-        return Variable(str(items[0]), span=_span(meta))
+        return Variable(str(items[0]), span=span_from_meta(meta))
 
     def add(self, meta, items):
-        return Arithmetic("+", items[0], items[1], span=_span(meta))
+        return Arithmetic("+", items[0], items[1], span=span_from_meta(meta))
 
     def subtract(self, meta, items):
-        return Arithmetic("-", items[0], items[1], span=_span(meta))
+        return Arithmetic("-", items[0], items[1], span=span_from_meta(meta))
 
     def multiply(self, meta, items):
-        return Arithmetic("*", items[0], items[1], span=_span(meta))
+        return Arithmetic("*", items[0], items[1], span=span_from_meta(meta))
 
     def equal(self, meta, items):
-        return Compare("=", items[0], items[1], span=_span(meta))
+        return Compare("=", items[0], items[1], span=span_from_meta(meta))
 
     def greater(self, meta, items):
-        return Compare(">", items[0], items[1], span=_span(meta))
+        return Compare(">", items[0], items[1], span=span_from_meta(meta))
 
     def boolean_or_op(self, meta, items):
-        return BooleanOr(items[0], items[1], span=_span(meta))
+        return BooleanOr(items[0], items[1], span=span_from_meta(meta))
 
     def boolean_not(self, meta, items):
-        return BooleanNot(items[0], span=_span(meta))
+        return BooleanNot(items[0], span=span_from_meta(meta))
 
 
 _parser = Lark(
-    files("sipl.grammar").joinpath("sipl.lark").read_text(encoding="utf-8"),
-    start="start",
+    GRAMMAR_TEXT,
     parser="lalr",
+    start="start",
     propagate_positions=True,
 )
 
@@ -106,14 +129,15 @@ _PATTERN_LABELS = {"NAME": "variable name", "INTEGER": "integer", "WS": "whitesp
 _TERMINAL_LABELS: dict[str, str] = {"$END": "end of input"}
 for _terminal in _parser.terminals:
     if isinstance(_terminal.pattern, PatternStr):
-         _label = repr(_terminal.pattern.value)
+        _label = repr(_terminal.pattern.value)
     elif _terminal.name.startswith("_"):  # keyword written as /word\b/
-         _label = repr(_terminal.pattern.value.replace("\\b", ""))
+        _label = repr(_terminal.pattern.value.replace("\\b", ""))
     else:
-         _label = _PATTERN_LABELS.get(_terminal.name, _terminal.name)
+        _label = _PATTERN_LABELS.get(_terminal.name, _terminal.name)
     _TERMINAL_LABELS[_terminal.name] = _label
 
 _FOUND_RE = re.compile(r"\w+|\S")
+
 
 def _position(source: str, offset: int) -> tuple[int, int]:
     """Return the 1-based (line, column) of a 0-based character offset."""
@@ -122,10 +146,10 @@ def _position(source: str, offset: int) -> tuple[int, int]:
     return line, column
 
 
-def _syntax_error(exc: UnexpectedInput, source: str) -> SiplSyntaxError:
+def to_syntax_error(exc: UnexpectedInput, source: str) -> SiplSyntaxError:
     """Turn a Lark parse failure into a SiplSyntaxError with an exact SourceSpan."""
     token = getattr(exc, "token", None)
-    at_eof = isinstance(exc, UnexpectedEOF) or getattr(token, "type", None) == "$END"    
+    at_eof = isinstance(exc, UnexpectedEOF) or getattr(token, "type", None) == "$END"
     offset = getattr(exc, "pos_in_stream", None)
     if at_eof or offset is None or offset < 0:
         offset = len(source)
@@ -134,6 +158,7 @@ def _syntax_error(exc: UnexpectedInput, source: str) -> SiplSyntaxError:
     found = match.group() if match else None
     end = offset + len(found) if found else offset
 
+    # ``accepts`` (LALR, exact) > ``allowed`` (lexer) > ``expected`` (may over-report).
     names = (
         getattr(exc, "accepts", None)
         or getattr(exc, "allowed", None)
@@ -154,17 +179,20 @@ def _syntax_error(exc: UnexpectedInput, source: str) -> SiplSyntaxError:
     return SiplSyntaxError(Diagnostic(code, message, span))
 
 
-def parse_tree(source: str) -> Tree:
-    """Return Lark's concrete parse tree for SIPL source."""
+def _lark_tree(source: str) -> Tree:
     try:
         return _parser.parse(source)
     except UnexpectedInput as exc:
-        raise _syntax_error(exc, source) from exc
+        raise to_syntax_error(exc, source) from exc
 
 
 def parse(source: str) -> Program:
-    """Parse SIPL source and return its :class:`Program` AST."""
-    return SIPLTransformer().transform(parse_tree(source))
+    """Parse SIPL source and return its :class:`Program` AST.
+
+    Raises :class:`~sipl.errors.SiplSyntaxError` with a diagnostic
+    (line, column, span, message) if the source is not a valid program.
+    """
+    return SIPLTransformer().transform(_lark_tree(source))
 
 
 parse_program = parse
