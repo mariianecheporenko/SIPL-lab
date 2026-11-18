@@ -27,9 +27,9 @@ from sipl.parser import parse
         ("begin X := 5; if X = 5 then Y := 1 else Y := 0 end", {"X": 5, "Y": 1}),
         # 6. If-then-else false branch
         ("begin X := 3; if X > 5 then Y := 1 else Y := 0 end", {"X": 3, "Y": 0}),
-        # 7. Boolean operators (or '|', not '~')
+        # 7. Boolean operators (or '\/', '|', '∨', not '~')
         (
-            "begin X := 1; if ~(X = 2) | (X > 10) then Y := 100 else Y := 0 end",
+            r"begin X := 1; if ~(X = 2) \/ (X > 10) then Y := 100 else Y := 0 end",
             {"X": 1, "Y": 100},
         ),
         # 8. Nested begin/end blocks

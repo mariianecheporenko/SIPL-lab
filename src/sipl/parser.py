@@ -111,7 +111,10 @@ class SIPLTransformer(Transformer):
         return Compare(">", items[0], items[1], span=span_from_meta(meta))
 
     def boolean_or_op(self, meta, items):
-        return BooleanOr(items[0], items[1], span=span_from_meta(meta))
+        # items can be [left, or_token, right] or [left, right]
+        left = items[0]
+        right = items[-1]
+        return BooleanOr(left, right, span=span_from_meta(meta))
 
     def boolean_not(self, meta, items):
         return BooleanNot(items[0], span=span_from_meta(meta))

@@ -38,7 +38,7 @@
   {
     "id": "CONF-02",
     "description": "Boolean negation, disjunction, if-then-else, and skip",
-    "source": "begin X := 1; if ~(X = 2) | (X > 10) then Y := 100 else skip end",
+    "source": "begin X := 1; if ~(X = 2) \\/ (X > 10) then Y := 100 else skip end",
     "expect_valid": true,
     "expected_ast": {
       "type": "Program",

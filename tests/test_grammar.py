@@ -2,7 +2,7 @@
 
 import pytest
 
-from sipl.ast import Arithmetic, Assign, If, Number, Seq, While
+from sipl.ast import Arithmetic, Assign, BooleanOr, If, Number, Seq, While
 from sipl.errors import SiplSyntaxError
 from sipl.parser import _parser, parse
 
@@ -65,3 +65,9 @@ def test_minus_is_subtraction_after_an_operand():
     stmt = parse("begin X := 5 -3 end").body
     assert isinstance(stmt.expression, Arithmetic) and stmt.expression.operator == "-"
     assert stmt.expression.left == Number(5) and stmt.expression.right == Number(3)
+
+
+@pytest.mark.parametrize("op", [r"\/", "|", "∨"])
+def test_boolean_disjunction_synonyms(op):
+    tree = parse(f"begin if 1 > 0 {op} 2 > 0 then skip else skip end")
+    assert isinstance(tree.body.condition, BooleanOr)

@@ -1,5 +1,4 @@
 // SIPL grammar. Arithmetic precedence: * before + and -; operators associate left.
-//start: "begin" statement "end"
 
 // SIPL grammar (LALR(1)).
 //
@@ -43,12 +42,14 @@ block: _BEGIN statement _END
 
 ?boolean: boolean_or
 ?boolean_or: boolean_atom
-           | boolean_or "|" boolean_atom -> boolean_or_op
+           | boolean_or OR boolean_atom -> boolean_or_op
 ?boolean_atom: comparison
              | "~" boolean_atom        -> boolean_not
              | "(" boolean ")"
 comparison: arithmetic "=" arithmetic -> equal
           | arithmetic ">" arithmetic -> greater
+
+OR: "\\/" | "|" | "∨"
 
 _BEGIN: /begin\b/
 _END:   /end\b/

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mariianecheporenko/sipl-lab/docs/json-schema.json",
+  "title": "SIPL CLI JSON Output Schema",
+  "type": "object",
+  "oneOf": [
+    {
+      "title": "CheckSuccess",
+      "required": ["status", "file"],
+      "properties": {
+        "status": { "const": "ok" },
+        "file": { "type": "string" }
+      }
+    },
+    {
+      "title": "RunSuccess",
+      "required": ["status", "final_state", "steps"],
+      "properties": {
+        "status": { "const": "ok" },
+        "final_state": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "steps": { "type": "integer", "minimum": 0 }
+      }
+    },
+    {
+      "title": "TraceSuccess",
+      "required": ["status", "final_state", "trace"],
+      "properties": {
+        "status": { "const": "ok" },
+        "final_state": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "trace": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "step", "event", "statement", "span",
+              "variable", "old_value", "new_value", "result", "state"
+            ],
+            "properties": {
+              "step": { "type": "integer", "minimum": 1 },
+              "event": { "type": "string" },
+              "statement": { "type": "string" },
+              "span": { "$ref": "#/$defs/SourceSpan" },
+              "variable": { "type": ["string", "null"] },
+              "old_value": { "type": ["integer", "null"] },
+              "new_value": { "type": ["integer", "null"] },
+              "result": { "type": ["boolean", "null"] },
+              "state": { "type": "object", "additionalProperties": { "type": "integer" } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "CliError",
+      "required": ["status", "error_kind", "code", "message", "diagnostics"],
+      "properties": {
+        "status": { "const": "error" },
+        "error_kind": { "enum": ["syntax", "runtime", "step_limit"] },
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "span": { "$ref": "#/$defs/SourceSpan" },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "span": { "$ref": "#/$defs/SourceSpan" }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "SourceSpan": {
+      "type": "object",
+      "required": [
+        "start_line", "start_column", "end_line", "end_column", "start_offset", "end_offset"
+      ],
+      "properties": {
+        "start_line": { "type": "integer", "minimum": 1 },
+        "start_column": { "type": "integer", "minimum": 1 },
+        "end_line": { "type": "integer", "minimum": 1 },
+        "end_column": { "type": "integer", "minimum": 1 },
+        "start_offset": { "type": "integer", "minimum": 0 },
+        "end_offset": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

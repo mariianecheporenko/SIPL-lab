@@ -7,10 +7,11 @@ import json
 import sys
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
+from typing import Any
 
 from . import __version__
 from .errors import SiplError, SiplSyntaxError
-from .interpreter import Interpreter
+from .interpreter import ExecutionLimitError, Interpreter
 from .parse_tree import parse_concrete
 from .parser import parse
 from .visualization import (
@@ -156,6 +157,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_parse = commands.add_parser("parse", help="print AST as JSON")
     p_parse.add_argument("file", type=Path)
+    p_parse.add_argument("--json", action="store_true", dest="as_json")
     p_parse.set_defaults(handler=lambda args: cmd_parse(args.file))
 
     p_run = commands.add_parser("run", help="execute a SIPL program")
@@ -167,6 +169,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_trace = commands.add_parser("trace", help="execute and print JSON trace events")
     p_trace.add_argument("file", type=Path)
     p_trace.add_argument("--max-steps", type=int, default=10_000)
+    p_trace.add_argument("--json", action="store_true", dest="as_json")
     p_trace.set_defaults(handler=lambda args: cmd_trace(args.file, args.max_steps))
 
     p_vis = commands.add_parser(
@@ -186,11 +189,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="default: html for --kind compare, text otherwise",
     )
     p_vis.add_argument("-o", "--output", type=Path, help="write to a file instead of stdout")
+    p_vis.add_argument("--json", action="store_true", dest="as_json")
     p_vis.set_defaults(
-        handler=lambda args: cmd_visualize(args.file, args.kind, args.format, args.output)
+        handler=lambda args: cmd_visualize(
+            args.file,
+            args.kind,
+            "json" if args.as_json else args.format,
+            args.output,
+        )
     )
 
     return parser
+
+
+def _extract_diag(exc: SiplError) -> dict[str, Any]:
+    if hasattr(exc.diagnostic, "to_dict"):
+        return exc.diagnostic.to_dict()
+    if is_dataclass(exc.diagnostic):
+        return asdict(exc.diagnostic)
+    return {"code": exc.diagnostic.code, "message": exc.diagnostic.message}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -198,25 +215,36 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return args.handler(args)
-    except SiplError as exc:
-        error_kind = "syntax" if isinstance(exc, SiplSyntaxError) else "runtime"
-        if hasattr(exc.diagnostic, "to_dict"):
-            diag_fields = exc.diagnostic.to_dict()
-        elif is_dataclass(exc.diagnostic):
-            diag_fields = asdict(exc.diagnostic)
-        else:
-            diag_fields = {
-                "code": exc.diagnostic.code,
-                "message": exc.diagnostic.message,
-            }
+    except SiplSyntaxError as exc:
+        diag = _extract_diag(exc)
         payload = {
             "status": "error",
-            "error_kind": error_kind,
-            "diagnostics": [diag_fields],
-            **diag_fields,
+            "error_kind": "syntax",
+            "diagnostics": [diag],
+            **diag,
         }
         print(json.dumps(payload, ensure_ascii=False), file=sys.stderr)
         return 1
+    except SiplError as exc:
+        diag = _extract_diag(exc)
+        payload = {
+            "status": "error",
+            "error_kind": "runtime",
+            "diagnostics": [diag],
+            **diag,
+        }
+        print(json.dumps(payload, ensure_ascii=False), file=sys.stderr)
+        return 2
+    except ExecutionLimitError as exc:
+        err_diag = {"code": "E_STEP_LIMIT", "message": str(exc)}
+        payload = {
+            "status": "error",
+            "error_kind": "step_limit",
+            "diagnostics": [err_diag],
+            **err_diag,
+        }
+        print(json.dumps(payload, ensure_ascii=False), file=sys.stderr)
+        return 3
     except (OSError, ValueError) as exc:
         err_diag = {"code": "E_RUNTIME", "message": str(exc)}
         payload = {
@@ -226,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
             **err_diag,
         }
         print(json.dumps(payload, ensure_ascii=False), file=sys.stderr)
-        return 1
+        return 2
 
 
 if __name__ == "__main__":

@@ -169,7 +169,9 @@ class Interpreter:
         raise ValueError(f"Unknown comparison operator: {node.operator}")
 
     def visit_boolean_or(self, node: BooleanOr) -> bool:
-        return self.visit(node.left) or self.visit(node.right)
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        return left or right
 
     def visit_boolean_not(self, node: BooleanNot) -> bool:
         return not self.visit(node.operand)

@@ -169,6 +169,11 @@ def test_cli_visualize_combinations_and_errors(tmp_path: Path, capsys):
     capsys.readouterr()
     assert "<!DOCTYPE html>" in html_out.read_text(encoding="utf-8")
 
-    # 5. Invalid combination (parse + html) returns exit code 1
-    assert cli_main(["visualize", str(src_file), "--kind", "parse", "--format", "html"]) == 1
+    # 5. Invalid combination (parse + html) returns exit code 2
+    assert (
+        cli_main(
+            ["visualize", str(src_file), "--kind", "parse", "--format", "html"]
+        )
+        == 2
+    )
     capsys.readouterr()
