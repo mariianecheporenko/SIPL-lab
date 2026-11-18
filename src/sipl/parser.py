@@ -94,8 +94,7 @@ class SIPLTransformer(Transformer):
 
 _parser = Lark.open(
     str(GRAMMAR_PATH),
-    parser="earley",
-    ambiguity="resolve",
+    parser="lalr",
     start="start",
     propagate_positions=True,
 )
@@ -104,14 +103,15 @@ _parser = Lark.open(
 _PATTERN_LABELS = {"NAME": "variable name", "INTEGER": "integer", "WS": "whitespace"}
 _TERMINAL_LABELS: dict[str, str] = {"$END": "end of input"}
 for _terminal in _parser.terminals:
-    _TERMINAL_LABELS[_terminal.name] = (
-        repr(_terminal.pattern.value)
-        if isinstance(_terminal.pattern, PatternStr)
-        else _PATTERN_LABELS.get(_terminal.name, _terminal.name)
-    )
+    if isinstance(_terminal.pattern, PatternStr):
+         _label = repr(_terminal.pattern.value)
+    elif _terminal.name.startswith("_"):  # keyword written as /word\b/
+         _label = repr(_terminal.pattern.value.replace("\\b", ""))
+    else:
+         _label = _PATTERN_LABELS.get(_terminal.name, _terminal.name)
+    _TERMINAL_LABELS[_terminal.name] = _label
 
-_FOUND_RE = re.compile(r"[A-Za-z_]\w*|\d+|\S")
-
+_FOUND_RE = re.compile(r"\w+|\S")
 
 def _position(source: str, offset: int) -> tuple[int, int]:
     """Return the 1-based (line, column) of a 0-based character offset."""
@@ -122,7 +122,8 @@ def _position(source: str, offset: int) -> tuple[int, int]:
 
 def _syntax_error(exc: UnexpectedInput, source: str) -> SiplSyntaxError:
     """Turn a Lark parse failure into a SiplSyntaxError with an exact SourceSpan."""
-    at_eof = isinstance(exc, UnexpectedEOF)
+    token = getattr(exc, "token", None)
+    at_eof = isinstance(exc, UnexpectedEOF) or getattr(token, "type", None) == "$END"    
     offset = getattr(exc, "pos_in_stream", None)
     if at_eof or offset is None or offset < 0:
         offset = len(source)
@@ -131,7 +132,12 @@ def _syntax_error(exc: UnexpectedInput, source: str) -> SiplSyntaxError:
     found = match.group() if match else None
     end = offset + len(found) if found else offset
 
-    names = getattr(exc, "allowed", None) or getattr(exc, "expected", None) or ()
+    names = (
+        getattr(exc, "accepts", None)
+        or getattr(exc, "allowed", None)
+        or getattr(exc, "expected", None)
+        or ()
+    )
     expected = sorted({_TERMINAL_LABELS.get(name, name) for name in names})
 
     subject = f"unexpected {found!r}" if found else "unexpected end of input"

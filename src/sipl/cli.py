@@ -9,14 +9,9 @@ import sys
 
 from lark.tree import pydot__tree_to_png, pydot__tree_to_dot
 
-try:
-    from .errors import SiplError
-    from .interpreter import Interpreter
-    from .parser import parse, parse_tree
-except ImportError:
-    from errors import SiplError
-    from interpreter import Interpreter
-    from parser import parse, parse_tree
+from .errors import SiplError
+from .interpreter import Interpreter    
+from .parser import parse, parse_tree
 
 
 def _read_source(path: Path) -> str:
@@ -59,7 +54,7 @@ def cmd_trace(path: Path, max_steps: int = 10000) -> int:
     output = {
         "status": "ok",
         "final_state": final_state,
-        "trace": interpreter.trace_events,
+        "trace": [event.to_dict() for event in interpreter.trace_events],
     }
     print(json.dumps(output, indent=2))
     return 0

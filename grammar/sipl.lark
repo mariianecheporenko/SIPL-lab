@@ -1,5 +1,21 @@
 // SIPL grammar. Arithmetic precedence: * before + and -; operators associate left.
-start: "begin" statement "end"
+//start: "begin" statement "end"
+
+// SIPL grammar (LALR(1)).
+//
+// Disambiguation rules:
+//   1. `;` is the lowest-precedence construct. The branches of `if` and the
+//      body of `while` are a single statement; to put several statements
+//      there, wrap them in `begin ... end`. Hence
+//          while C do A; B   means   (while C do A); B
+//   2. Arithmetic: `*` binds tighter than `+` and `-`; all are left-associative.
+//   3. Boolean: `~` binds tighter than `|`; `|` is left-associative.
+//   4. Keywords, names and integers must not be glued to neighbouring letters
+//      or digits (`1end`, `beginX`, `Xend` are rejected).
+//
+// Terminals starting with `_` are filtered out of the parse tree.
+
+start: _BEGIN statement _END
 
 ?statement: sequence
 sequence: simple (";" simple)*
@@ -8,12 +24,12 @@ sequence: simple (";" simple)*
        | if_statement
        | while_statement
        | block
-       | "skip"                         -> skip_statement
+       | _SKIP                          -> skip_statement
 
 assignment: NAME ":=" arithmetic
-if_statement: "if" boolean "then" statement "else" statement
-while_statement: "while" boolean "do" statement
-block: "begin" statement "end"
+if_statement: _IF boolean _THEN simple _ELSE simple
+while_statement: _WHILE boolean _DO simple
+block: _BEGIN statement _END
 
 ?arithmetic: sum
 ?sum: product
@@ -22,7 +38,7 @@ block: "begin" statement "end"
 ?product: atom
         | product "*" atom             -> multiply
 ?atom: INTEGER                         -> number
-     | NAME                             -> variable
+     | NAME                            -> variable
      | "(" arithmetic ")"
 
 ?boolean: boolean_or
@@ -34,7 +50,17 @@ block: "begin" statement "end"
 comparison: arithmetic "=" arithmetic -> equal
           | arithmetic ">" arithmetic -> greater
 
-NAME: /[A-Z]+/
-INTEGER: /-?[0-9]+/
+_BEGIN: /begin\b/
+_END:   /end\b/
+_IF:    /if\b/
+_THEN:  /then\b/
+_ELSE:  /else\b/
+_WHILE: /while\b/
+_DO:    /do\b/
+_SKIP:  /skip\b/
+
+NAME:    /[A-Z]+(?![A-Za-z0-9_])/
+INTEGER: /-?[0-9]+(?![A-Za-z0-9_])/
+
 %import common.WS
 %ignore WS
