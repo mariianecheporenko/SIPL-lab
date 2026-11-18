@@ -1,24 +1,63 @@
-name: SIPL Toolkit CI
+name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main]
   pull_request:
-    branches: [ main, master ]
+    branches: [main]
 
 jobs:
-  test:
+  quality-and-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Install dependencies
+          python-version: "3.12"
+
+      - name: Install editable package with dev dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install lark pydot pytest
-      - name: Run tests
+          pip install -e ".[dev]"
+
+      - name: Lint with ruff
+        run: ruff check src tests conformance
+
+      - name: Type-check with mypy
+        run: mypy src
+
+      - name: Run unit tests with coverage
+        run: pytest -v --cov=sipl --cov-report=term-missing
+
+      - name: Run conformance suite against installed CLI
+        run: python -O conformance/run_conformance.py --cmd "sipl"
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build sdist and wheel
         run: |
-          python -m pytest -v
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Install wheel into a clean venv and smoke-test outside repo
+        run: |
+          python -m venv /tmp/venv
+          /tmp/venv/bin/pip install dist/*.whl
+          printf 'begin X := 2 end' > /tmp/smoke.sipl
+          cd /tmp
+          /tmp/venv/bin/sipl --version
+          /tmp/venv/bin/sipl run /tmp/smoke.sipl --json
+          /tmp/venv/bin/sipl visualize /tmp/smoke.sipl --kind compare --format html -o /tmp/out.html
+          /tmp/venv/bin/python -m sipl check /tmp/smoke.sipl
